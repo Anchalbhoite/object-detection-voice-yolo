@@ -40,11 +40,12 @@ Users can upload an image or use their **webcam camera** to detect objects, and 
 ---
 
 ## 📷 Screenshots
-### Upload Image  
-![Upload Demo](images/screenshot_upload.png)  
+ 
+![Upload Demo](<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/36130170-a35d-4f5f-97e8-3f52318b9050" />
+  
 
-### Camera Input  
-![Camera Demo](images/screenshot_camera.png)  
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ec0e34af-47a5-443e-927e-37c8b414f6da" />
+
 
 ---
 
