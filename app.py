@@ -1,42 +1,45 @@
 import streamlit as st
 import cv2
 from ultralytics import YOLO
-import pyttsx3
 import tempfile
+from gtts import gTTS
+import os
 
 # Load YOLOv8 model
 model = YOLO("yolov8n.pt")
 
 st.title("🔍 Object Detection with Voice (YOLOv8)")
-st.markdown("This app detects objects in real-time and announces their names with speech.")
+st.markdown("Upload an image to detect objects. The app will also announce detected objects with speech.")
 
-run = st.checkbox("Start Camera")
+uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
 
-if run:
-    cap = cv2.VideoCapture(0)
+if uploaded_file is not None:
+    # Save temp file
+    tfile = tempfile.NamedTemporaryFile(delete=False)
+    tfile.write(uploaded_file.read())
 
-    # Text-to-speech engine
-    engine = pyttsx3.init()
+    # Read image
+    img = cv2.imread(tfile.name)
 
-    stframe = st.empty()
+    # Run YOLO
+    results = model(img)
+    annotated_img = results[0].plot()
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    # Display results
+    st.image(annotated_img, channels="BGR", caption="Detected Objects")
 
-        # Run YOLO model
-        results = model(frame)
+    # Extract detected objects
+    names = results[0].names
+    detected = [names[int(cls)] for cls in results[0].boxes.cls]
 
-        # Plot results
-        annotated_frame = results[0].plot()
-        stframe.image(annotated_frame, channels="BGR")
+    if detected:
+        st.success(f"Detected: {', '.join(detected)}")
 
-        # Get detected objects
-        names = results[0].names
-        detected = [names[int(cls)] for cls in results[0].boxes.cls]
+        # Convert detected objects into speech
+        text_to_speak = " , ".join(detected)
+        tts = gTTS(text=text_to_speak, lang="en")
+        audio_path = "detected.mp3"
+        tts.save(audio_path)
 
-        if detected:
-            for obj in detected:
-                engine.say(obj)
-            engine.runAndWait()
+        # Play audio in Streamlit
+        st.audio(audio_path, format="audio/mp3")
