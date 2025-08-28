@@ -1,31 +1,43 @@
 import streamlit as st
 import cv2
 from ultralytics import YOLO
-import tempfile
 from gtts import gTTS
-import os
+import tempfile
 
 # Load YOLOv8 model
 model = YOLO("yolov8n.pt")
 
 st.title("🔍 Object Detection with Voice (YOLOv8)")
-st.markdown("Upload an image to detect objects. The app will also announce detected objects with speech.")
+st.markdown("Upload an image **or use your camera**. The app will detect objects and speak them out.")
 
-uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
+# Choose input method
+option = st.radio("Choose input method:", ("📂 Upload Image", "📸 Use Camera"))
 
-if uploaded_file is not None:
-    # Save temp file
-    tfile = tempfile.NamedTemporaryFile(delete=False)
-    tfile.write(uploaded_file.read())
+img = None
 
-    # Read image
-    img = cv2.imread(tfile.name)
+# File upload option
+if option == "📂 Upload Image":
+    uploaded_file = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
+    if uploaded_file is not None:
+        tfile = tempfile.NamedTemporaryFile(delete=False)
+        tfile.write(uploaded_file.read())
+        img = cv2.imread(tfile.name)
 
+# Camera option
+elif option == "📸 Use Camera":
+    camera_file = st.camera_input("Take a picture")
+    if camera_file is not None:
+        tfile = tempfile.NamedTemporaryFile(delete=False)
+        tfile.write(camera_file.getbuffer())
+        img = cv2.imread(tfile.name)
+
+# Process the image if available
+if img is not None:
     # Run YOLO
     results = model(img)
     annotated_img = results[0].plot()
 
-    # Display results
+    # Display annotated image
     st.image(annotated_img, channels="BGR", caption="Detected Objects")
 
     # Extract detected objects
